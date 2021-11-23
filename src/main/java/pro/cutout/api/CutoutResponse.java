@@ -3,13 +3,9 @@ package pro.cutout.api;
 
 public class CutoutResponse<T> {
 
-    //返回信息码
     private Integer code;
-    //返回数据
     private T data;
-    //返回信息内容
     private String msg;
-    //响应的时间戳
     private Long time;
 
     public Integer getCode() {

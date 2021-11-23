@@ -2,17 +2,20 @@ package pro.cutout.api;
 
 
 import com.alibaba.fastjson.JSON;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import pro.cutout.api.requests.*;
 import pro.cutout.api.responses.*;
 
 import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Iterator;
 import java.util.UUID;
 
 class CutoutTests {
@@ -23,7 +26,7 @@ class CutoutTests {
 
     public static void main(String[] args) throws Exception {
         System.out.println("===============================================");
-        fetchCreditBalance();
+        photoAnimerTaskGet();
         System.out.println("===============================================");
     }
 
@@ -31,22 +34,39 @@ class CutoutTests {
         FetchCreditBalanceRequest request = new FetchCreditBalanceRequest();
         FetchCreditBalanceResponse response = client.execute(request);
         write(JSON.toJSONBytes(response), "json");
-
     }
 
     public static void photoAnimerTaskGet() throws Exception {
-        PhotoAnimerTaskGetRequest request = new PhotoAnimerTaskGetRequest();
-        request.setTaskId(296566L);
-        PhotoAnimerTaskGetResponse response = client.execute(request);
-        write(JSON.toJSONBytes(response), "json");
+        Long taskId = photoAnimerTaskCreate();
+        if(taskId==null){
+            return;
+        }
+        for (int i = 0; i <= 100; i++) {
+            PhotoAnimerTaskGetRequest request = new PhotoAnimerTaskGetRequest();
+            request.setTaskId(taskId);
+            PhotoAnimerTaskGetResponse response = client.execute(request);
+            PhotoAnimerTaskGetResponse.Data date = response.getData();
+            if (date.getStatus().equals(1)) {
+                System.out.println(date.getResultUrl());
+                byte[] bytes = download(date.getResultUrl());
+                write(bytes, "mp4");
+                return;
+            } else if (date.getStatus().equals(2)) {
+                System.out.println(JSON.toJSONString(response));
+                return;
+            }else{
+                System.out.println("sleep 1 second");
+                Thread.sleep(1000L);
+            }
+        }
     }
 
-    public static void photoAnimerTaskCreate() throws Exception {
+    public static Long photoAnimerTaskCreate() throws Exception {
         PhotoAnimerTaskCreateRequest request = new PhotoAnimerTaskCreateRequest();
         request.setImageUrl("https://img.alicdn.com/bao/uploaded/i1/919618044/O1CN01BY1v6929ICeBbILpK_!!919618044.jpg");
         request.setTemplateId(0);
         PhotoAnimerTaskCreateResponse response = client.execute(request);
-        write(JSON.toJSONBytes(response), "json");
+        return response.getData();
 
     }
 
@@ -214,23 +234,76 @@ class CutoutTests {
         }
     }
 
+    public static byte[] download(String url) {
+        HttpGet httpGet = new HttpGet(url);
+        try (
+                CloseableHttpClient client = HttpClients.createDefault();
+                CloseableHttpResponse response = client.execute(httpGet)
+        ) {
+            byte[] bytes = EntityUtils.toByteArray(response.getEntity());
+            return bytes;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static String toBASE64(InputStream inputStream) throws IOException {
-        ImageInputStream imageInputStream = ImageIO.createImageInputStream(inputStream);
-        String formatName = getImgFormatName(imageInputStream);
+        byte[] data = inputTobyte(inputStream);
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
+        ImageInputStream imageInputStream = ImageIO.createImageInputStream(byteArrayInputStream);
         BufferedImage bufferedImage = ImageIO.read(imageInputStream);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        String formatName = getImageType(data);
         ImageIO.write(bufferedImage, formatName, out);
         byte[] bytes = Base64.getEncoder().encode(out.toByteArray());
         return new String(bytes);
-
     }
 
-    public static String getImgFormatName(ImageInputStream inputStream) throws IOException {
-        Iterator<ImageReader> iterator = ImageIO.getImageReaders(inputStream);
-        if (iterator.hasNext()) {
-            return iterator.next().getFormatName().toLowerCase();
+    public static byte[] inputTobyte(InputStream inStream) throws IOException {
+        ByteArrayOutputStream swapStream = new ByteArrayOutputStream();
+        byte[] buff = new byte[1024];
+        int rc;
+        while ((rc = inStream.read(buff, 0, 100)) > 0) {
+            swapStream.write(buff, 0, rc);
         }
-        return null;
+        return swapStream.toByteArray();
+    }
+
+    public static String getImageType(byte[] data) {
+        String type = null;
+        if (data[1] == 'P' && data[2] == 'N' && data[3] == 'G') {
+            type = "PNG";
+            return type;
+        }
+        if (data[0] == 'G' && data[1] == 'I' && data[2] == 'F') {
+            type = "GIF";
+            return type;
+        }
+        if (data[6] == 'J' && data[7] == 'F' && data[8] == 'I'
+                && data[9] == 'F') {
+            type = "JPG";
+            return type;
+        }
+
+        if (data[6] == 'E' && data[7] == 'x' && data[8] == 'i'
+                && data[9] == 'f') {
+            type = "JPG";
+            return type;
+        }
+        if (data[8] == 'W' && data[9] == 'E' && data[10] == 'B'
+                && data[11] == 'P') {
+            type = "WEBP";
+            return type;
+        }
+
+        if (data[0] == 'B' && data[1] == 'M' && data[2] == 'v'
+                && data[3] == 'A') {
+            type = "BMP";
+            return type;
+        }
+        return type;
     }
 
 

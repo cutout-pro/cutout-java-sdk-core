@@ -30,13 +30,6 @@ public class CutoutClient {
         this.apikey = apiKey;
     }
 
-    /**
-     * 执行隐私API请求。
-     *
-     * @param <T>     具体的API响应类
-     * @param request 具体的API请求类
-     * @return 具体的API响应
-     */
     public <T extends CutoutResponse> T execute(CutoutRequest<T> request) throws Exception {
         HttpUriRequest httpUriRequest = getHttpRequest(request);
         httpUriRequest.setHeader("APIKEY", apikey);
@@ -58,6 +51,7 @@ public class CutoutClient {
                 CloseableHttpResponse response = client.execute(httpUriRequest)
         ) {
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+
                 cutoutResponse = request.getResponseClass().getDeclaredConstructor().newInstance();
                 cutoutResponse.setCode(-1);
                 cutoutResponse.setMsg("http status code:" + response.getStatusLine().getStatusCode());
