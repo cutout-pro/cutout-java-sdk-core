@@ -19,8 +19,10 @@ import java.util.Base64;
 import java.util.UUID;
 
 class CutoutTests {
-    static String serverUrl = "https://picupapi.tukeli.net/api/v1";
-    static String apikey = "d214a9f3ed4e47c08bed61e5a76cf255";
+    static String serverUrl = "https://www.cutout.pro/api/v1";
+    
+    //visit https://www.cutout.pro/user/secret-key to get your api key
+    static String apikey = "Your API KEY"; 
     static CutoutClient client = new CutoutClient(serverUrl, apikey);
 
 
