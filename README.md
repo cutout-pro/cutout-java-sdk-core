@@ -1,4 +1,4 @@
-# Pickup truck intelligent matting API interface project example code
+# Cutout truck intelligent matting API interface project example code
 
 #### [中文](./README_CN.md)
 #### Use the sample
