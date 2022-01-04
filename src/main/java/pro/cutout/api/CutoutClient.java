@@ -2,6 +2,7 @@ package pro.cutout.api;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -59,7 +60,8 @@ public class CutoutClient {
                 return cutoutResponse;
             }
             HttpEntity httpEntity = response.getEntity();
-            if (httpEntity.getContentType().getValue().startsWith(ContentType.APPLICATION_JSON.getMimeType())) {
+            Header header = httpEntity.getContentType();
+            if (header!=null && header.getValue().startsWith(ContentType.APPLICATION_JSON.getMimeType())) {
                 String result = EntityUtils.toString(response.getEntity());
                 cutoutResponse = JSON.parseObject(result, request.getResponseClass());
             } else {

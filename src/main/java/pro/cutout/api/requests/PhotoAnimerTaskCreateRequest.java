@@ -9,6 +9,15 @@ public class PhotoAnimerTaskCreateRequest implements CutoutRequest<PhotoAnimerTa
 
     private String imageUrl;
     private Integer templateId;
+    private String voiceUrl;
+
+    public String getVoiceUrl() {
+        return voiceUrl;
+    }
+
+    public void setVoiceUrl(String voiceUrl) {
+        this.voiceUrl = voiceUrl;
+    }
 
     public String getImageUrl() {
         return imageUrl;
