@@ -23,9 +23,6 @@ class CutoutTests {
     static String apikey = "Your API KEY";
     static CutoutClient client = new CutoutClient(serverUrl, apikey);
     static Map<String, byte[]> cache = new HashMap<>();
-    static String manUrl = "https://deeplor.oss-cn-hangzhou.aliyuncs.com/site/picup/cn-home/face1.jpg";
-    static String grayScaleUrl = "https://deeplor.oss-cn-hangzhou.aliyuncs.com/site/picup/cn-home/photoColoring3.jpg";
-
 
     public static void main(String[] args) throws Exception {
         System.out.println("===============================================");
@@ -74,13 +71,7 @@ class CutoutTests {
     }
 
     public static void passportPhoto() throws Exception {
-        String base64 = null;
-        try (FileInputStream fileInputStream = new FileInputStream("C:\\Users\\root\\Desktop\\123.jpg")) {
-            base64 = toBASE64(fileInputStream);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        String base64 = toBASE64(getResources("img/boy.jpg"));
         PassportPhotoRequest request = new PassportPhotoRequest();
         request.setBase64(base64);
         request.setBgColor("3557FF");
@@ -121,12 +112,7 @@ class CutoutTests {
     }
 
     public static void imageRetouch() throws Exception {
-        String base64 = null;
-        try (FileInputStream fileInputStream = new FileInputStream("C:\\Users\\root\\Desktop\\aaaa.jpg")) {
-            base64 = toBASE64(fileInputStream);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        String base64 = toBASE64(getResources("img/boy.jpg"));
         ImageRetouchRequest.Rectangle rectangle = new ImageRetouchRequest.Rectangle();
         rectangle.setWidth(120);
         rectangle.setHeight(138);

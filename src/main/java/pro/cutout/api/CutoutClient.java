@@ -38,11 +38,6 @@ public class CutoutClient {
     }
 
     public <T extends CutoutResponse> T execute(BaseCutoutRequest<T> request) throws Exception {
-        HttpUriRequest httpUriRequest = getHttpRequest(request);
-        if (apikey != null) {
-            httpUriRequest.setHeader("APIKEY", apikey);
-        }
-
         T cutoutResponse;
         try {
             check(request);
@@ -54,7 +49,10 @@ public class CutoutClient {
             cutoutResponse.setTime(System.currentTimeMillis());
             return cutoutResponse;
         }
-
+        HttpUriRequest httpUriRequest = getHttpRequest(request);
+        if (apikey != null) {
+            httpUriRequest.setHeader("APIKEY", apikey);
+        }
         try (
                 CloseableHttpClient client = HttpClients.createDefault();
                 CloseableHttpResponse response = client.execute(httpUriRequest)
