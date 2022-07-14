@@ -2,22 +2,21 @@ package pro.cutout.api.requests;
 
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
-import pro.cutout.api.CutoutRequest;
+import pro.cutout.api.BaseCutoutRequest;
 import pro.cutout.api.responses.CartoonSelfieToBase64ByFileResponse;
-import pro.cutout.api.responses.CartoonSelfieToByteByFileResponse;
 
-import java.io.File;
+import java.io.InputStream;
 
-public class CartoonSelfieToBase64ByFileRequest implements CutoutRequest<CartoonSelfieToBase64ByFileResponse> {
+public class CartoonSelfieToBase64ByFileRequest extends BaseCutoutRequest<CartoonSelfieToBase64ByFileResponse> {
 
-    private File file;
+    private InputStream file;
     private int cartoonType;
 
-    public File getFile() {
+    public InputStream getFile() {
         return file;
     }
 
-    public void setFile(File file) {
+    public void setFile(InputStream file) {
         this.file = file;
     }
 

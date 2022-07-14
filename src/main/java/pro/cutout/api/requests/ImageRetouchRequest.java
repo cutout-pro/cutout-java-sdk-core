@@ -2,12 +2,12 @@ package pro.cutout.api.requests;
 
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
-import pro.cutout.api.CutoutRequest;
+import pro.cutout.api.BaseCutoutRequest;
 import pro.cutout.api.responses.ImageRetouchResponse;
 
 import java.util.List;
 
-public class ImageRetouchRequest implements CutoutRequest<ImageRetouchResponse> {
+public class ImageRetouchRequest extends BaseCutoutRequest<ImageRetouchResponse> {
     private String base64;
     private List<Rectangle> rectangles;
     private String maskBase64;

@@ -1,15 +1,11 @@
 package pro.cutout.api.requests;
 
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
-import pro.cutout.api.CutoutRequest;
-import pro.cutout.api.responses.FaceCutoutToBase64ByFileResponse;
+import pro.cutout.api.BaseCutoutRequest;
 import pro.cutout.api.responses.FaceCutoutToBase64ByUrlResponse;
 
-import java.io.File;
-
-public class FaceCutoutToBase64ByUrlRequest implements CutoutRequest<FaceCutoutToBase64ByUrlResponse> {
+public class FaceCutoutToBase64ByUrlRequest extends BaseCutoutRequest<FaceCutoutToBase64ByUrlResponse> {
     private String url;
     private Boolean crop;
     private String bgcolor;

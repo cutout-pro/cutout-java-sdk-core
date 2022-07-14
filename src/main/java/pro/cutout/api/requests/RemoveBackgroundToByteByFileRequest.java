@@ -2,23 +2,24 @@ package pro.cutout.api.requests;
 
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
-import pro.cutout.api.CutoutRequest;
+import pro.cutout.api.BaseCutoutRequest;
 import pro.cutout.api.responses.RemoveBackgroundToByteByFileResponse;
 
-import java.io.File;
+import java.io.InputStream;
 
-public class RemoveBackgroundToByteByFileRequest implements CutoutRequest<RemoveBackgroundToByteByFileResponse> {
+public class RemoveBackgroundToByteByFileRequest extends BaseCutoutRequest<RemoveBackgroundToByteByFileResponse> {
 
-    private File file;
+
+    private InputStream file;
     private Boolean crop;
     private String bgcolor;
     private Boolean preview;
 
-    public File getFile() {
+    public InputStream getFile() {
         return file;
     }
 
-    public void setFile(File file) {
+    public void setFile(InputStream file) {
         this.file = file;
     }
 

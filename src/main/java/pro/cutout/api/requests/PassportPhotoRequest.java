@@ -2,10 +2,10 @@ package pro.cutout.api.requests;
 
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
-import pro.cutout.api.CutoutRequest;
+import pro.cutout.api.BaseCutoutRequest;
 import pro.cutout.api.responses.PassportPhotoResponse;
 
-public class PassportPhotoRequest implements CutoutRequest<PassportPhotoResponse> {
+public class PassportPhotoRequest extends BaseCutoutRequest<PassportPhotoResponse> {
     private String base64;
     private String bgColor;
     private String bgColor2;

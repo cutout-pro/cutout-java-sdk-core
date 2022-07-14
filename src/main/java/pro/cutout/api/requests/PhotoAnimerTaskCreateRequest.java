@@ -2,10 +2,10 @@ package pro.cutout.api.requests;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.ContentType;
-import pro.cutout.api.CutoutRequest;
+import pro.cutout.api.BaseCutoutRequest;
 import pro.cutout.api.responses.PhotoAnimerTaskCreateResponse;
 
-public class PhotoAnimerTaskCreateRequest implements CutoutRequest<PhotoAnimerTaskCreateResponse> {
+public class PhotoAnimerTaskCreateRequest extends BaseCutoutRequest<PhotoAnimerTaskCreateResponse> {
 
     private String imageUrl;
     private Integer templateId;

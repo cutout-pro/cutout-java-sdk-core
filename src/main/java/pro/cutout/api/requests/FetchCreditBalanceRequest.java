@@ -2,10 +2,10 @@ package pro.cutout.api.requests;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.ContentType;
-import pro.cutout.api.CutoutRequest;
+import pro.cutout.api.BaseCutoutRequest;
 import pro.cutout.api.responses.FetchCreditBalanceResponse;
 
-public class FetchCreditBalanceRequest implements CutoutRequest<FetchCreditBalanceResponse> {
+public class FetchCreditBalanceRequest extends BaseCutoutRequest<FetchCreditBalanceResponse> {
     @Override
     public String getApiUrl() {
         return "/mySubscription";

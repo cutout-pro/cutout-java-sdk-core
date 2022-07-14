@@ -8,9 +8,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})
 public @interface ApiBodyField {
-    String value() default "";
+    String value();
 
-    String fieldName() default "";
+    String fieldName();
 
 }
 

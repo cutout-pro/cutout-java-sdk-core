@@ -1,14 +1,11 @@
 package pro.cutout.api.requests;
 
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
-import pro.cutout.api.CutoutRequest;
+import pro.cutout.api.BaseCutoutRequest;
 import pro.cutout.api.responses.CartoonSelfieToBase64ByFileResponse;
 
-import java.io.File;
-
-public class CartoonSelfieToBase64ByUrlRequest implements CutoutRequest<CartoonSelfieToBase64ByFileResponse> {
+public class CartoonSelfieToBase64ByUrlRequest extends BaseCutoutRequest<CartoonSelfieToBase64ByFileResponse> {
 
     private String url;
     private int cartoonType;

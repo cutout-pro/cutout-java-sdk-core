@@ -2,11 +2,10 @@ package pro.cutout.api.requests;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.ContentType;
-import pro.cutout.api.CutoutRequest;
+import pro.cutout.api.BaseCutoutRequest;
 import pro.cutout.api.responses.RemoveBackgroundToBase64ByUrlResponse;
-import pro.cutout.api.responses.RemoveBackgroundToByteByFileResponse;
 
-public class RemoveBackgroundToBase64ByUrlRequest implements CutoutRequest<RemoveBackgroundToBase64ByUrlResponse> {
+public class RemoveBackgroundToBase64ByUrlRequest extends BaseCutoutRequest<RemoveBackgroundToBase64ByUrlResponse> {
 
     private String url;
     private Boolean crop;

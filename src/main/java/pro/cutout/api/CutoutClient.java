@@ -9,6 +9,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -19,6 +20,7 @@ import org.apache.http.util.EntityUtils;
 import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.util.UUID;
 
 
 public class CutoutClient {
@@ -26,14 +28,20 @@ public class CutoutClient {
     private String apikey;
     private String serverUrl;
 
+    public CutoutClient(String serverUrl) {
+        this.serverUrl = serverUrl;
+    }
+
     public CutoutClient(String serverUrl, String apiKey) {
         this.serverUrl = serverUrl;
         this.apikey = apiKey;
     }
 
-    public <T extends CutoutResponse> T execute(CutoutRequest<T> request) throws Exception {
+    public <T extends CutoutResponse> T execute(BaseCutoutRequest<T> request) throws Exception {
         HttpUriRequest httpUriRequest = getHttpRequest(request);
-        httpUriRequest.setHeader("APIKEY", apikey);
+        if (apikey != null) {
+            httpUriRequest.setHeader("APIKEY", apikey);
+        }
 
         T cutoutResponse;
         try {
@@ -61,7 +69,7 @@ public class CutoutClient {
             }
             HttpEntity httpEntity = response.getEntity();
             Header header = httpEntity.getContentType();
-            if (header!=null && header.getValue().startsWith(ContentType.APPLICATION_JSON.getMimeType())) {
+            if (header != null && header.getValue().startsWith(ContentType.APPLICATION_JSON.getMimeType())) {
                 String result = EntityUtils.toString(response.getEntity());
                 cutoutResponse = JSON.parseObject(result, request.getResponseClass());
             } else {
@@ -82,43 +90,49 @@ public class CutoutClient {
         }
     }
 
-    public HttpUriRequest getHttpRequest(CutoutRequest cutoutRequest) throws Exception {
-        String apiUrl = this.serverUrl + cutoutRequest.getApiUrl();
+    public HttpUriRequest getHttpRequest(BaseCutoutRequest cutoutRequest) throws Exception {
+        URIBuilder newBuilder = new URIBuilder(this.serverUrl + cutoutRequest.getApiUrl());
+        String sign = cutoutRequest.getSign();
+        if (sign != null) {
+            newBuilder.setParameter("sign", sign);
+        }
+        Long signExpireTime = cutoutRequest.getSignExpireTime();
+        if (signExpireTime != null) {
+            newBuilder.setParameter("signExpireTime", signExpireTime.toString());
+        }
+        Long uid = cutoutRequest.getUid();
+        if (uid != null) {
+            newBuilder.setParameter("uid", uid.toString());
+        }
         ContentType contentType = cutoutRequest.getContentType();
         if (HttpGet.METHOD_NAME.equals(cutoutRequest.getHttpMethod())) {
-            StringBuffer url = new StringBuffer(apiUrl);
+            //获取所有字段,public和protected和private,但是不包括父类字段
             Field[] fields = cutoutRequest.getClass().getDeclaredFields();
-            boolean first = !apiUrl.contains("?");
             for (Field field : fields) {
                 field.setAccessible(true);
+                String fieldName = field.getName();
                 Object value = field.get(cutoutRequest);
+
+                ApiBodyField bodyField = field.getAnnotation(ApiBodyField.class);
+                if (bodyField != null) {
+                    String name = bodyField.fieldName();
+                    if (name != null && !name.isEmpty()) {
+                        fieldName = name;
+                    }
+                    if (value == null) {
+                        value = bodyField.value();
+                    }
+                }
                 if (value == null) {
                     continue;
                 }
-                if (first) {
-                    first = false;
-                    url.append("?");
-                } else {
-                    url.append("&");
-                }
-                ApiBodyField bodyField = field.getAnnotation(ApiBodyField.class);
-                if (bodyField == null) {
-                    url.append(field.getName());
-                    url.append("=");
-                    url.append(value);
-                    continue;
-                }
-
-                String fieldName = bodyField.fieldName();
-                String name = fieldName != null && !fieldName.isEmpty() ? fieldName : field.getName();
-                url.append(name);
-                url.append("=");
-                url.append(value);
+                newBuilder.setParameter(fieldName, value.toString());
+                continue;
             }
-            HttpGet httpGet = new HttpGet(url.toString());
+            HttpGet httpGet = new HttpGet(newBuilder.build());
             return httpGet;
         } else {
-            HttpPost httpPost = new HttpPost(apiUrl);
+            HttpPost httpPost = new HttpPost(newBuilder.build());
             if (ContentType.APPLICATION_JSON.equals(contentType)) {
                 String content = JSONObject.toJSONString(cutoutRequest);
                 StringEntity stringEntity = new StringEntity(content, "UTF-8");
@@ -130,13 +144,15 @@ public class CutoutClient {
                 Field[] fields = cutoutRequest.getClass().getDeclaredFields();
                 for (Field field : fields) {
                     field.setAccessible(true);
-                    ApiBodyField bodyField = field.getAnnotation(ApiBodyField.class);
-                    String name = field.getName();
+                    String fieldName = field.getName();
                     Object value = field.get(cutoutRequest);
 
+                    ApiBodyField bodyField = field.getAnnotation(ApiBodyField.class);
                     if (bodyField != null) {
-                        String fieldName = bodyField.fieldName();
-                        name = fieldName != null && !fieldName.isEmpty() ? bodyField.fieldName() : name;
+                        String name = bodyField.fieldName();
+                        if (name != null && !name.isEmpty()) {
+                            fieldName = name;
+                        }
                         if (value == null) {
                             value = bodyField.value();
                         }
@@ -146,13 +162,13 @@ public class CutoutClient {
                     }
 
                     if (value instanceof InputStream) {
-                        multipartEntityBuilder.addBinaryBody(name, (InputStream) value);
+                        multipartEntityBuilder.addBinaryBody(fieldName, (InputStream) value, ContentType.DEFAULT_BINARY, UUID.randomUUID().toString());
                     } else if (value instanceof File) {
-                        multipartEntityBuilder.addBinaryBody(name, (File) value);
+                        multipartEntityBuilder.addBinaryBody(fieldName, (File) value);
                     } else if (value instanceof byte[]) {
-                        multipartEntityBuilder.addBinaryBody(name, (byte[]) value);
+                        multipartEntityBuilder.addBinaryBody(fieldName, (byte[]) value, ContentType.DEFAULT_BINARY, UUID.randomUUID().toString());
                     } else {
-                        multipartEntityBuilder.addTextBody(name, value.toString());
+                        multipartEntityBuilder.addTextBody(fieldName, value.toString());
                     }
                 }
                 httpPost.setEntity(multipartEntityBuilder.build());

@@ -20,6 +20,22 @@ allprojects {
     }
 }
 
+jar {
+    zip64 true
+    //当有重复依赖,排除重复依赖
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+    //指定清单文件编码
+    manifestContentCharset 'UTF-8'
+    manifest {
+        attributes 'Main-Class': "pro.cutout.api.UnitTests"
+    }
+    from {
+        configurations.runtimeClasspath.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+}
+
 dependencies {
     implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
     implementation group: 'org.apache.httpcomponents', name: 'httpmime', version: '4.5.13'
