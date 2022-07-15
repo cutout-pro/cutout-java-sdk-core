@@ -2,6 +2,7 @@ package pro.cutout.api;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
@@ -26,15 +27,23 @@ import java.util.UUID;
 public class CutoutClient {
 
     private String apikey;
+    private Long uid;
+    private Long signExpireTime;
+    private Boolean isSign;
     private String serverUrl;
-
-    public CutoutClient(String serverUrl) {
-        this.serverUrl = serverUrl;
-    }
 
     public CutoutClient(String serverUrl, String apiKey) {
         this.serverUrl = serverUrl;
         this.apikey = apiKey;
+        isSign = Boolean.FALSE;
+    }
+
+    public CutoutClient(String serverUrl, String apiKey, Long uid, Long signExpireTime) {
+        this.serverUrl = serverUrl;
+        this.apikey = apiKey;
+        this.uid = uid;
+        this.signExpireTime = signExpireTime;
+        isSign = Boolean.TRUE;
     }
 
     public <T extends CutoutResponse> T execute(BaseCutoutRequest<T> request) throws Exception {
@@ -50,7 +59,7 @@ public class CutoutClient {
             return cutoutResponse;
         }
         HttpUriRequest httpUriRequest = getHttpRequest(request);
-        if (apikey != null) {
+        if (Boolean.FALSE.equals(isSign)) {
             httpUriRequest.setHeader("APIKEY", apikey);
         }
         try (
@@ -90,21 +99,15 @@ public class CutoutClient {
 
     public HttpUriRequest getHttpRequest(BaseCutoutRequest cutoutRequest) throws Exception {
         URIBuilder newBuilder = new URIBuilder(this.serverUrl + cutoutRequest.getApiUrl());
-        String sign = cutoutRequest.getSign();
-        if (sign != null) {
+        if (Boolean.TRUE.equals(isSign)) {
+            Long signExpireTime = System.currentTimeMillis() / 1000 + this.signExpireTime;
+            String sign = DigestUtils.sha256Hex(uid + apikey + signExpireTime);
             newBuilder.setParameter("sign", sign);
-        }
-        Long signExpireTime = cutoutRequest.getSignExpireTime();
-        if (signExpireTime != null) {
             newBuilder.setParameter("signExpireTime", signExpireTime.toString());
-        }
-        Long uid = cutoutRequest.getUid();
-        if (uid != null) {
             newBuilder.setParameter("uid", uid.toString());
         }
         ContentType contentType = cutoutRequest.getContentType();
         if (HttpGet.METHOD_NAME.equals(cutoutRequest.getHttpMethod())) {
-            //获取所有字段,public和protected和private,但是不包括父类字段
             Field[] fields = cutoutRequest.getClass().getDeclaredFields();
             for (Field field : fields) {
                 field.setAccessible(true);
