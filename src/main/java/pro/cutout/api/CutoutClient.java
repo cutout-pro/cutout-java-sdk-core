@@ -21,7 +21,9 @@ import org.apache.http.util.EntityUtils;
 import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 
 
 public class CutoutClient {
@@ -108,60 +110,22 @@ public class CutoutClient {
         }
         ContentType contentType = cutoutRequest.getContentType();
         if (HttpGet.METHOD_NAME.equals(cutoutRequest.getHttpMethod())) {
-            Field[] fields = cutoutRequest.getClass().getDeclaredFields();
-            for (Field field : fields) {
-                field.setAccessible(true);
-                String fieldName = field.getName();
-                Object value = field.get(cutoutRequest);
-
-                ApiBodyField bodyField = field.getAnnotation(ApiBodyField.class);
-                if (bodyField != null) {
-                    String name = bodyField.fieldName();
-                    if (name != null && !name.isEmpty()) {
-                        fieldName = name;
-                    }
-                    if (value == null) {
-                        value = bodyField.value();
-                    }
-                }
-                if (value == null) {
-                    continue;
-                }
+            setValue(cutoutRequest, (fieldName, value) -> {
                 newBuilder.setParameter(fieldName, value.toString());
-                continue;
-            }
+            });
             HttpGet httpGet = new HttpGet(newBuilder.build());
             return httpGet;
         } else {
             HttpPost httpPost = new HttpPost(newBuilder.build());
             if (ContentType.APPLICATION_JSON.equals(contentType)) {
                 String content = JSONObject.toJSONString(cutoutRequest);
-                StringEntity stringEntity = new StringEntity(content, "UTF-8");
+                StringEntity stringEntity = new StringEntity(content, StandardCharsets.UTF_8);
                 stringEntity.setContentType(ContentType.APPLICATION_JSON.toString());
                 httpPost.setEntity(stringEntity);
             } else if (ContentType.MULTIPART_FORM_DATA.equals(contentType)) {
                 MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
                 multipartEntityBuilder.setContentType(contentType);
-                Field[] fields = cutoutRequest.getClass().getDeclaredFields();
-                for (Field field : fields) {
-                    field.setAccessible(true);
-                    String fieldName = field.getName();
-                    Object value = field.get(cutoutRequest);
-
-                    ApiBodyField bodyField = field.getAnnotation(ApiBodyField.class);
-                    if (bodyField != null) {
-                        String name = bodyField.fieldName();
-                        if (name != null && !name.isEmpty()) {
-                            fieldName = name;
-                        }
-                        if (value == null) {
-                            value = bodyField.value();
-                        }
-                    }
-                    if (value == null) {
-                        continue;
-                    }
-
+                setValue(cutoutRequest, (fieldName, value) -> {
                     if (value instanceof InputStream) {
                         multipartEntityBuilder.addBinaryBody(fieldName, (InputStream) value, ContentType.DEFAULT_BINARY, UUID.randomUUID().toString());
                     } else if (value instanceof File) {
@@ -171,10 +135,34 @@ public class CutoutClient {
                     } else {
                         multipartEntityBuilder.addTextBody(fieldName, value.toString());
                     }
-                }
+                });
                 httpPost.setEntity(multipartEntityBuilder.build());
             }
             return httpPost;
+        }
+    }
+
+    public void setValue(BaseCutoutRequest cutoutRequest, BiConsumer<String, Object> biConsumer) throws IllegalAccessException {
+        Field[] fields = cutoutRequest.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            String fieldName = field.getName();
+            Object value = field.get(cutoutRequest);
+
+            ApiBodyField bodyField = field.getAnnotation(ApiBodyField.class);
+            if (bodyField != null) {
+                String name = bodyField.fieldName();
+                if (name != null && !name.isEmpty()) {
+                    fieldName = name;
+                }
+                if (value == null) {
+                    value = bodyField.value();
+                }
+            }
+            if (value == null) {
+                continue;
+            }
+            biConsumer.accept(fieldName, value);
         }
     }
 
