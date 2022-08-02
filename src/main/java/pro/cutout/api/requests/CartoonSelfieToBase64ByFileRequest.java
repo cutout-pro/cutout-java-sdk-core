@@ -11,6 +11,24 @@ public class CartoonSelfieToBase64ByFileRequest extends BaseCutoutRequest<Cartoo
 
     private InputStream file;
     private int cartoonType;
+    private String outputFormat;
+    private Integer outSize;
+
+    public String getOutputFormat() {
+        return outputFormat;
+    }
+
+    public void setOutputFormat(String outputFormat) {
+        this.outputFormat = outputFormat;
+    }
+
+    public Integer getOutSize() {
+        return outSize;
+    }
+
+    public void setOutSize(Integer outSize) {
+        this.outSize = outSize;
+    }
 
     public InputStream getFile() {
         return file;

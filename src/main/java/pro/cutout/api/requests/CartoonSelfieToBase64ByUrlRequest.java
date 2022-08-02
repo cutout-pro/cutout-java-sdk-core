@@ -10,6 +10,25 @@ public class CartoonSelfieToBase64ByUrlRequest extends BaseCutoutRequest<Cartoon
     private String url;
     private int cartoonType;
 
+    private String outputFormat;
+    private Integer outSize;
+
+    public String getOutputFormat() {
+        return outputFormat;
+    }
+
+    public void setOutputFormat(String outputFormat) {
+        this.outputFormat = outputFormat;
+    }
+
+    public Integer getOutSize() {
+        return outSize;
+    }
+
+    public void setOutSize(Integer outSize) {
+        this.outSize = outSize;
+    }
+
     public String getUrl() {
         return url;
     }
