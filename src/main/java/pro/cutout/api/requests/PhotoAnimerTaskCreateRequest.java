@@ -11,6 +11,15 @@ public class PhotoAnimerTaskCreateRequest extends BaseCutoutRequest<PhotoAnimerT
     private Integer templateId;
     private String voiceUrl;
     private String outputFormat;
+    private Boolean isHd;
+
+    public Boolean getIsHd() {
+        return isHd;
+    }
+
+    public void setIsHd(Boolean isHd) {
+        isHd = isHd;
+    }
 
     public String getOutputFormat() {
         return outputFormat;
